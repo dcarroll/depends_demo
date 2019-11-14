@@ -1,0 +1,46 @@
+<template>
+    <lightning-layout>
+        <lightning-layout-item padding="around-small">
+            <div class="header-column">
+                <p class="field-title" title="Foo">
+                    <lightning-input class="mdNameInput" label="MD Name" placeholder="Metadata Name" value={searchFieldName}></lightning-input>
+                </p>
+            </div>
+        </lightning-layout-item>
+        <lightning-layout-item padding="around-small">
+            <div class="header-column">
+                <p class="field-title" title="Foo">
+                    <lightning-input class="mdTypeInput" label="MD Type" placeholder="CustomField" value={mdSearchType}></lightning-input>
+                </p>
+            </div>
+        </lightning-layout-item>
+        <lightning-layout-item padding="around-small">
+            <div class="header-column">
+                <p class="field-title" title="Foo">
+                    <lightning-input class="mdNewFieldInput" label="Field to Add" placeholder="Field_To_Add__c" value="Field_To_Add__c"></lightning-input>
+                </p>
+            </div>
+        </lightning-layout-item>
+    </lightning-layout>
+    <!-- <lightning-button type="submit" label="Find" onclick={handleOnClick}></lightning-button>-->
+    <!-- <lightning-textarea value={dependsData} name="input1" label="Enter some text" ></lightning-textarea>-->
+    <div >
+        <lightning-datatable style="height: 300px;"
+            data={records}
+            columns={columns}
+            key-field="Id"
+            hide-checkbox-column="true"
+            onrowaction={doAction}>
+        </lightning-datatable>
+    </div>
+    
+    <div class="slds-m-around_large">
+        <p if:true={isLoaded}>Content has been loaded.</p>
+
+         <div if:false={isLoaded} class="slds-is-relative">
+            <lightning-spinner
+                alternative-text="Loading..." variant="brand">
+            </lightning-spinner>
+        </div>
+    </div>
+</template>
