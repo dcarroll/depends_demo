@@ -22,7 +22,7 @@
             </div>
         </lightning-layout-item>
     </lightning-layout>
-    <!-- <lightning-button type="submit" label="Find" onclick={handleOnClick}></lightning-button>-->
+    <!-- <lightning-button type="submit" label="Find" onclick={findCompDependency}></lightning-button>-->
     <!-- <lightning-textarea value={dependsData} name="input1" label="Enter some text" ></lightning-textarea>-->
     <div >
         <lightning-datatable style="height: 300px;"
@@ -33,7 +33,29 @@
             onrowaction={doAction}>
         </lightning-datatable>
     </div>
-    
+    <lightning-card>
+        <lightning-record-form
+            columns=2
+            record-id={accountRecordId}
+            object-api-name={objectName}
+            layout-type="Full"
+            mode={formMode}>
+            <template for:each={sections} for:item="section">
+                <lightning-card key={section.Id}>
+                    <template for:each={section.layoutRows} for:item="row" for:index="rowIndex">
+                        <div key={row.rowIndex} class="slds-grid">
+                            <template for:each={row.layoutItems} for:item="item" for:index="itemIndex">
+                                <div key={item.apiName} class="slds-col slds-size_1-of-2">
+                                    <lightning-output-field field-name={item.apiName}>
+                                    </lightning-output-field>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </lightning-card>
+            </template>
+        </lightning-record-form>
+    </lightning-card>
     <div class="slds-m-around_large">
         <p if:true={isLoaded}>Content has been loaded.</p>
 
@@ -43,4 +65,13 @@
             </lightning-spinner>
         </div>
     </div>
+    <!--
+
+                    <template for:each={contacts} for:item="contact">
+                <li key={contact.Id}>
+                    {contact.Name}, {contact.Title}
+                </li>
+            </template>
+
+    -->
 </template>

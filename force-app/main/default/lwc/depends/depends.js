@@ -1,15 +1,20 @@
-import { LightningElement, api, track } from 'lwc';
+/* eslint-disable guard-for-in */
+import { LightningElement, api, track, wire } from 'lwc';
 import findDependency from '@salesforce/apex/DepApiController.findDependency';
 import addFieldToLayout from '@salesforce/apex/DepApiController.addFieldToLayout';
 import removeFieldFromLayout from '@salesforce/apex/DepApiController.removeFieldFromLayout';
-import { subscribe, unsubscribe, onError, setDebugFlag, isEmpEnabled } from 'lightning/empApi';
+import getFirstRecordId from '@salesforce/apex/DepApiController.getFirstRecordId';
+import getLayoutItemNames from '@salesforce/apex/DepApiController.getLayoutItemNames';
+import { subscribe, unsubscribe } from 'lightning/empApi';
+import { getRecordUi } from 'lightning/uiRecordApi';
 
 export default class Depends extends LightningElement {
 
     @track dependsData; // Used for debugging
     @track records;
     @api isLoaded = false;
-    @track accountRecordId;
+    @api accountRecordId = '0015500000dLdnhAAC';
+    @api objectName = 'Account';
 
     actions = [
         { label: 'Insert Into Layout', name: 'insertIntoLayout' },
@@ -21,6 +26,12 @@ export default class Depends extends LightningElement {
     @track fieldNameToAdd = 'Field_To_Add__c';
     @track channelName = '/event/Deploy_Success__e'
     @track subsciption;
+    @api formMode = 'view';
+    @track fields = [];
+    @track leftColumn = [];
+    @track rightColumn = [];
+    @track sections = [];
+    accountUI;
 
     @track columns = [
         { label: 'Host Comp Id', fieldName: 'MetadataComponentId' },
@@ -38,17 +49,8 @@ export default class Depends extends LightningElement {
         },
     ];
 
-    connectedCallback() {
-        this.isLoaded = true;
-        console.log('Calling onClick from connectedCallback');
-        this.handleOnClick();
-    }
-
-    toggle() {
-        this.isLoaded = !this.isLoaded;
-    }
-
     getActions(row, doneCallback) {
+        window.console.log('calling "getActions"');
         const actions = [];
 
         if (row.IsOnLayout === true) {
@@ -67,39 +69,75 @@ export default class Depends extends LightningElement {
         doneCallback(actions);    
     }
 
-    handleOnClick() {
-        console.log('Calling findCompDependency from handleOnClick');
-        this.findCompDependency({ compType: this.mdSearchType, fieldNameToFind: this.searchFieldName, fieldNameToAdd: this.fieldNameToAdd })
+    @wire(getRecordUi, { recordIds: '$accountRecordId', layoutTypes: 'Full', modes: 'View' })
+    gotRecordUi(data) {
+        window.console.log('calling "gotRecordUi"');
+        if (data.error !== undefined) {
+            window.console.log(data.error);
+        } else {
+            if (data.data !== undefined) {
+                const col1 = [];
+                const col2 = [];
+                // data.data.layouts.Account['012000000000000AAA'].Compact.View.sections[0].layoutRows[0].layoutItems[0].layoutComponents
+                const accountLayout = data.data.layouts.Account;
+                // eslint-disable-next-line guard-for-in
+                for (const key in accountLayout) {
+                    for (const layoutKey in accountLayout[key]) {
+                        this.sections = accountLayout[key][layoutKey].View.sections;
+                        for (const _section in this.sections) {
+                            for (const _row in this.sections[_section].layoutRows) {
+                                this.sections[_section].layoutRows[_row]['rowIndex'] = _row;
+                                const layoutItems = _row.layoutItems;
+                                for (let i = 0; i < layoutItems.length; i++) {
+                                    const comp = layoutItems[i].layoutComponents[0];
+                                    // if (comp.apiName !== null) {
+                                        if ((i % 2) === 0) {
+                                            this.leftColumn.push(comp.apiName);
+                                        } else {
+                                            this.rightColumn.push(comp.apiName);
+                                        }
+                                    //}
+                                }
+                            }
+                        }
+                    }
+                }
+                // window.console.log(data);
+                this.leftColumn = col1;
+                this.rightColumn = col2;
+                //this.fields = col1.concat(col2);
+                return col1.concat(col2);
+            }
+        }
+        return 0;
     }
 
-    async handleSubscribe(event) {
-        const comp = this;
-        // Callback invoked whenever a new event message is received
-        const messageCallback = function(response) {
-            console.log('Calling findCompDependency from messageCallback in handleSubscribe');
-            comp.findCompDependency({ compType: comp.mdSearchType, fieldNameToFind: comp.searchFieldName, fieldNameToAdd: comp.fieldNameToAdd });
-
-            comp.handleUnsubscribe();
-            // Response contains the payload of the new message received
-        };
-        this.toggle();
-        // Invoke subscribe method of empApi. Pass reference to messageCallback
-        subscribe(this.channelName, -1, messageCallback).then(response => {
-            // Response contains the subscription information on successful subscribe call
-            console.log('Successfully subscribed to : ', JSON.stringify(response.channel));
-            this.subscription = response;            
-        });
+    connectedCallback() {
+        window.console.log('calling "connectedCallback"');
+        this.isLoaded = true;
+        this.findCompDependency()
+        .then(() => {
+            getLayoutItemNames({ layoutName: 'Account-Account Layout' })
+            .then(data => {
+                this.fields = data;
+                getFirstRecordId()
+                .then(res => {
+                    this.accountRecordId = res;
+                })
+                .catch(e => {
+                    window.console.log(e);
+                })
+            })
+            .catch(e => {
+                window.console.log(e);
+            });
+        })
     }
 
-    handleUnsubscribe() {
-        unsubscribe(this.subscription, response => {
-            console.log('unsubscribe() response: ', JSON.stringify(response));
-            this.toggle();
-            // Response is true for successful unsubscribe
-        });
-    }
+    async findCompDependency() {
+        window.console.log('calling "findCompDependency"');
+        const searchValues = { compType: this.mdSearchType, fieldNameToFind: this.searchFieldName, fieldNameToAdd: this.fieldNameToAdd };
 
-    findCompDependency(searchValues) {
         findDependency(searchValues).then(result => {
             this.records = JSON.parse(result);
             this.dependsData = JSON.stringify(this.records, null, 4);
@@ -109,6 +147,7 @@ export default class Depends extends LightningElement {
     }
 
     doAction(event) {
+        window.console.log('calling "doAction"');
         this.handleSubscribe()
         .then(() => {
             const action = event.detail.action;
@@ -132,4 +171,70 @@ export default class Depends extends LightningElement {
             }
         });
     }
+
+    async handleSubscribe() {
+        window.console.log('calling "handleSubscribe"');
+        this.accountRecordId = '';
+        const comp = this;
+        // Callback invoked whenever a new event message is received
+        const messageCallback = function(response) {
+            window.console.log('in the messageCallback defined in handleSubscribe');
+            comp.messageReceivedCallback(response);
+        }
+
+        this.toggle();
+        // Invoke subscribe method of empApi. Pass reference to messageCallback
+        subscribe(this.channelName, -1, messageCallback)
+        .then(response => {
+            // Response contains the subscription information on successful subscribe call
+            window.console.log('Successfully subscribed to : ', JSON.stringify(response.channel));
+            this.subscription = response;            
+        })
+        .catch(e => {
+            window.console.log(e);
+        });
+    }
+
+    messageReceivedCallback() {
+        window.console.log('calling "messageReceivedCallback"');
+        this.findCompDependency({ compType: this.mdSearchType, fieldNameToFind: this.searchFieldName, fieldNameToAdd: this.fieldNameToAdd })
+        .then(() => {
+            getFirstRecordId()
+            .then(data => {
+                this.accountRecordId = data;
+                getLayoutItemNames({ layoutName: 'Account-Account Layout' })
+                .then(res => {
+                    this.fields = res;
+                })
+                .catch(e => {
+                    window.console.log(e);
+                });
+            })
+            .catch(e => {
+                window.console.log(e);
+            })
+            this.handleUnsubscribe();
+        })
+    }
+
+    handleUnsubscribe() {
+        window.console.log('calling "handleUnsubscribe"');
+        unsubscribe(this.subscription, response => {
+            window.console.log('unsubscribe() response: ', JSON.stringify(response));
+            this.toggle();
+            // Response is true for successful unsubscribe
+            const rid = this.accountRecordId;
+            //this.objectName = 'Contact';
+            //this.objectName = 'Account'
+            this.accountRecordId = '';
+            this.accountRecordId = rid;
+            //this.formMode = 'view';
+        });
+    }
+
+    toggle() {
+        window.console.log('calling "toggle"');
+        this.isLoaded = !this.isLoaded;
+    }
+
 }

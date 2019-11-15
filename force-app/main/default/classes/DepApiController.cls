@@ -17,7 +17,7 @@ public class DepApiController {
         return (List<Object>)jsonObj.get('records');
     }
 
-    @AuraEnabled(cacheable=true)
+    @AuraEnabled(cacheable=false)
     public static String getFirstRecordId() {
         Account acct = [Select Id From Account Limit 1];
         return acct.Id;
@@ -124,7 +124,7 @@ public class DepApiController {
         if (insertIndex == -1) {
             itemList.add(newItem);
         } else {
-            itemList.add(newItem);
+            itemList.add(insertIndex + 1, newItem);
         }
 
         Metadata.DeployContainer mdContainer = new Metadata.DeployContainer();
@@ -133,6 +133,35 @@ public class DepApiController {
         // Enqueue deploy
         DeployCallback callback = new DeployCallback();
         Metadata.Operations.enqueueDeployment(mdContainer, callback);
+    }
+
+    public static Metadata.Layout getLayout(String layoutName) {
+        List<String> componentNameList = new List<String>{layoutName};
+        // Retrieve components that are records of custom metadata types based on name
+        List<Metadata.Metadata> components = Metadata.Operations.retrieve(
+            Metadata.MetadataType.LAYOUT, componentNameList);
+        System.debug(components);
+        
+        return (Metadata.Layout) components.get(0);
+    }
+
+    @AuraEnabled(cacheable=false)
+    public static List<String> getLayoutItemNames(String layoutName) {
+        Metadata.Layout layout = getLayout(layoutName);
+        List<String> itemNames = new List<String>();
+        List<Metadata.LayoutSection> sections = layout.layoutSections;
+        List<Metadata.LayoutItem> itemList;
+        for (Metadata.LayoutSection mls : sections) {
+            List<Metadata.LayoutColumn> cols = mls.layoutColumns;
+            for (Metadata.LayoutColumn col : cols) {
+                if (col.layoutItems != null) {
+                    for (Metadata.LayoutItem item : col.layoutItems) {
+                        itemNames.add(item.field);
+                    }
+                }
+            }
+        }
+        return itemNames;
     }
 
     @AuraEnabled(cacheable=false)
