@@ -26,13 +26,9 @@ export default class Depends extends LightningElement {
     @track fieldNameToAdd = 'Field_To_Add__c';
     @track channelName = '/event/Deploy_Success__e'
     @track subsciption;
-    @api formMode = 'view';
+    @track formMode = 'View';
+    @track layoutType = 'Compact';
     @track fields = [];
-    @track leftColumn = [];
-    @track rightColumn = [];
-    @track sections = [];
-    @track layout = {}
-    accountUI;
 
     @track columns = [
         { label: 'Host Comp Id', fieldName: 'MetadataComponentId' },
@@ -74,47 +70,37 @@ export default class Depends extends LightningElement {
         return parseInt(Math.random() * 10000000, 10);
     }
 
-    /*@wire(getRecordUi, { recordIds: '$accountRecordId', layoutTypes: 'Full', modes: 'View' })
+/* 
+    @wire(getRecordUi, { recordIds: '$accountRecordId', layoutTypes: 'Full', modes: 'View' })
     gotRecordUi(data) {
         window.console.log('calling "gotRecordUi"');
         if (data.error !== undefined) {
             window.console.log(data.error);
         } else {
             if (data.data !== undefined) {
-                this.sections = [];
-                const col1 = [];
-                const col2 = [];
+                this.fields = [];
                 // data.data.layouts.Account['012000000000000AAA'].Compact.View.sections[0].layoutRows[0].layoutItems[0].layoutComponents
                 const accountLayout = data.data.layouts.Account;
                 // eslint-disable-next-line guard-for-in
                 for (const key in accountLayout) {
                     for (const layoutKey in accountLayout[key]) {
                         this.sections = accountLayout[key][layoutKey].View.sections;
-                        for (const _section in this.sections) {
-                            for (const _row in this.sections[_section].layoutRows) {
-                                const layoutItems = this.sections[_section].layoutRows[_row].layoutItems;
-                                for (let i = 0; i < layoutItems.length; i++) {
-                                    const comp = layoutItems[i].layoutComponents[0];
-                                    if ((i % 2) === 0) {
-                                        this.leftColumn.push(comp.apiName);
-                                    } else {
-                                        this.rightColumn.push(comp.apiName);
-                                    }
-                                }
+                        for (const _row in this.sections[0].layoutRows) {
+                            const layoutItems = this.sections[0].layoutRows[_row].layoutItems;
+                            for (let i = 0; i < layoutItems.length; i++) {
+                                const comp = layoutItems[i].layoutComponents[0];
+                                this.fields.push(comp.apiName);
                             }
                         }
                     }
                 }
-                // window.console.log(data);
-                this.leftColumn = col1;
-                this.rightColumn = col2;
+                this.formMode = 'Full';
                 //this.fields = col1.concat(col2);
-                return col1.concat(col2);
             }
         }
         return 0;
-    }*/
-
+    }
+*/
     connectedCallback() {
         window.console.log('calling "connectedCallback"');
         this.isLoaded = true;
@@ -123,9 +109,6 @@ export default class Depends extends LightningElement {
             getLayoutItemNames({ layoutName: 'Account-Account Layout' })
             .then(data => { 
                 debugger;
-                //this.layout = JSON.parse(data);
-                //this.sections = this.layout.layoutSections;
-                //this.sections = this.sections.splice(2);
                 this.fields = JSON.parse(data);
                 getFirstRecordId()
                 .then(res => {
@@ -209,13 +192,13 @@ export default class Depends extends LightningElement {
             getFirstRecordId()
             .then(data => {
                 this.accountRecordId = data;
-                //getLayoutItemNames({ layoutName: 'Account-Account Layout' })
-                //.then(res => {
-                //    this.fields = res;
-                //})
-                //.catch(e => {
-                //    window.console.log(e);
-                //});
+                getLayoutItemNames({ layoutName: 'Account-Account Layout' })
+                .then(res => {
+                    this.fields = JSON.parse(res);
+                })
+                .catch(e => {
+                    window.console.log(e);
+                });
             })
             .catch(e => {
                 window.console.log(e);

@@ -34,26 +34,15 @@
         </lightning-datatable>
     </div>
     <lightning-card>
-        <lightning-record-view-form
-            
+        <lightning-record-form
+            mode={formMode}
+            layout-type="Full"
+            columns=2
             record-id={accountRecordId}
             object-api-name={objectName}
+            fields={fields}
             >
-            <div class="slds-grid">
-                <template for:each={fields.left} for:item="field">
-                    <div key={uniqueId} class="slds-col slds-size_1-of-2">
-                        <lightning-output-field field-name={field}>
-                        </lightning-output-field>
-                    </div>
-                </template>
-                <template for:each={fields.right} for:item="field">
-                    <div key={uniqueId} class="slds-col slds-size_2-of-2">
-                        <lightning-output-field field-name={field}>
-                        </lightning-output-field>
-                    </div>
-                </template>
-            </div>
-        </lightning-record-view-form>
+        </lightning-record-form>
     </lightning-card>
     <div class="slds-m-around_large">
         <p if:true={isLoaded}>Content has been loaded.</p>
@@ -64,13 +53,4 @@
             </lightning-spinner>
         </div>
     </div>
-    <!--
-
-                    <template for:each={contacts} for:item="contact">
-                <li key={contact.Id}>
-                    {contact.Name}, {contact.Title}
-                </li>
-            </template>
-
-    -->
 </template>
