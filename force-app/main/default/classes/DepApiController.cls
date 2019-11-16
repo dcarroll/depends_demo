@@ -146,9 +146,12 @@ public class DepApiController {
     }
 
     @AuraEnabled(cacheable=false)
-    public static List<String> getLayoutItemNames(String layoutName) {
+    public static string getLayoutItemNames(String layoutName) {
+        List<String> leftColumn = new List<String>();
+        List<String> rightColumn = new List<String>();
+        Integer colIndex = 0;
         Metadata.Layout layout = getLayout(layoutName);
-        List<String> itemNames = new List<String>();
+        Map<String, List<String>> items = new Map<String, List<String>>();
         List<Metadata.LayoutSection> sections = layout.layoutSections;
         List<Metadata.LayoutItem> itemList;
         for (Metadata.LayoutSection mls : sections) {
@@ -156,12 +159,20 @@ public class DepApiController {
             for (Metadata.LayoutColumn col : cols) {
                 if (col.layoutItems != null) {
                     for (Metadata.LayoutItem item : col.layoutItems) {
-                        itemNames.add(item.field);
+                        if (colIndex == 0) {
+                            leftColumn.add(item.field);
+                        } else {
+                            rightColumn.add(item.field);
+                        }
                     }
                 }
+                colIndex++;
             }
+            colIndex = 0;
         }
-        return itemNames;
+        items.put('left', leftColumn);
+        items.put('right', rightColumn);
+        return JSON.serialize(items);
     }
 
     @AuraEnabled(cacheable=false)

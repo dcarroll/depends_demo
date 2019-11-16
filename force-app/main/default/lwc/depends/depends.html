@@ -34,27 +34,26 @@
         </lightning-datatable>
     </div>
     <lightning-card>
-        <lightning-record-form
-            columns=2
+        <lightning-record-view-form
+            
             record-id={accountRecordId}
             object-api-name={objectName}
-            layout-type="Full"
-            mode={formMode}>
-            <template for:each={sections} for:item="section">
-                <lightning-card key={section.Id}>
-                    <template for:each={section.layoutRows} for:item="row" for:index="rowIndex">
-                        <div key={row.rowIndex} class="slds-grid">
-                            <template for:each={row.layoutItems} for:item="item" for:index="itemIndex">
-                                <div key={item.apiName} class="slds-col slds-size_1-of-2">
-                                    <lightning-output-field field-name={item.apiName}>
-                                    </lightning-output-field>
-                                </div>
-                            </template>
-                        </div>
-                    </template>
-                </lightning-card>
-            </template>
-        </lightning-record-form>
+            >
+            <div class="slds-grid">
+                <template for:each={fields.left} for:item="field">
+                    <div key={uniqueId} class="slds-col slds-size_1-of-2">
+                        <lightning-output-field field-name={field}>
+                        </lightning-output-field>
+                    </div>
+                </template>
+                <template for:each={fields.right} for:item="field">
+                    <div key={uniqueId} class="slds-col slds-size_2-of-2">
+                        <lightning-output-field field-name={field}>
+                        </lightning-output-field>
+                    </div>
+                </template>
+            </div>
+        </lightning-record-view-form>
     </lightning-card>
     <div class="slds-m-around_large">
         <p if:true={isLoaded}>Content has been loaded.</p>

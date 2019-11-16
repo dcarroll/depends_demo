@@ -31,6 +31,7 @@ export default class Depends extends LightningElement {
     @track leftColumn = [];
     @track rightColumn = [];
     @track sections = [];
+    @track layout = {}
     accountUI;
 
     @track columns = [
@@ -69,13 +70,18 @@ export default class Depends extends LightningElement {
         doneCallback(actions);    
     }
 
-    @wire(getRecordUi, { recordIds: '$accountRecordId', layoutTypes: 'Full', modes: 'View' })
+    get uniqueId() {
+        return parseInt(Math.random() * 10000000, 10);
+    }
+
+    /*@wire(getRecordUi, { recordIds: '$accountRecordId', layoutTypes: 'Full', modes: 'View' })
     gotRecordUi(data) {
         window.console.log('calling "gotRecordUi"');
         if (data.error !== undefined) {
             window.console.log(data.error);
         } else {
             if (data.data !== undefined) {
+                this.sections = [];
                 const col1 = [];
                 const col2 = [];
                 // data.data.layouts.Account['012000000000000AAA'].Compact.View.sections[0].layoutRows[0].layoutItems[0].layoutComponents
@@ -86,17 +92,14 @@ export default class Depends extends LightningElement {
                         this.sections = accountLayout[key][layoutKey].View.sections;
                         for (const _section in this.sections) {
                             for (const _row in this.sections[_section].layoutRows) {
-                                this.sections[_section].layoutRows[_row]['rowIndex'] = _row;
-                                const layoutItems = _row.layoutItems;
+                                const layoutItems = this.sections[_section].layoutRows[_row].layoutItems;
                                 for (let i = 0; i < layoutItems.length; i++) {
                                     const comp = layoutItems[i].layoutComponents[0];
-                                    // if (comp.apiName !== null) {
-                                        if ((i % 2) === 0) {
-                                            this.leftColumn.push(comp.apiName);
-                                        } else {
-                                            this.rightColumn.push(comp.apiName);
-                                        }
-                                    //}
+                                    if ((i % 2) === 0) {
+                                        this.leftColumn.push(comp.apiName);
+                                    } else {
+                                        this.rightColumn.push(comp.apiName);
+                                    }
                                 }
                             }
                         }
@@ -110,7 +113,7 @@ export default class Depends extends LightningElement {
             }
         }
         return 0;
-    }
+    }*/
 
     connectedCallback() {
         window.console.log('calling "connectedCallback"');
@@ -118,8 +121,12 @@ export default class Depends extends LightningElement {
         this.findCompDependency()
         .then(() => {
             getLayoutItemNames({ layoutName: 'Account-Account Layout' })
-            .then(data => {
-                this.fields = data;
+            .then(data => { 
+                debugger;
+                //this.layout = JSON.parse(data);
+                //this.sections = this.layout.layoutSections;
+                //this.sections = this.sections.splice(2);
+                this.fields = JSON.parse(data);
                 getFirstRecordId()
                 .then(res => {
                     this.accountRecordId = res;
@@ -202,13 +209,13 @@ export default class Depends extends LightningElement {
             getFirstRecordId()
             .then(data => {
                 this.accountRecordId = data;
-                getLayoutItemNames({ layoutName: 'Account-Account Layout' })
-                .then(res => {
-                    this.fields = res;
-                })
-                .catch(e => {
-                    window.console.log(e);
-                });
+                //getLayoutItemNames({ layoutName: 'Account-Account Layout' })
+                //.then(res => {
+                //    this.fields = res;
+                //})
+                //.catch(e => {
+                //    window.console.log(e);
+                //});
             })
             .catch(e => {
                 window.console.log(e);
