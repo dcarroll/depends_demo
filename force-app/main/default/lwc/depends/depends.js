@@ -2,7 +2,7 @@ import { LightningElement, api, track } from 'lwc';
 import findDependency from '@salesforce/apex/DepApiController.findDependency';
 import addFieldToLayout from '@salesforce/apex/DepApiController.addFieldToLayout';
 import removeFieldFromLayout from '@salesforce/apex/DepApiController.removeFieldFromLayout';
-import { subscribe, unsubscribe, onError, setDebugFlag, isEmpEnabled } from 'lightning/empApi';
+import { subscribe, unsubscribe } from 'lightning/empApi';
 
 export default class Depends extends LightningElement {
 
@@ -40,7 +40,7 @@ export default class Depends extends LightningElement {
 
     connectedCallback() {
         this.isLoaded = true;
-        console.log('Calling onClick from connectedCallback');
+        window.console.log('Calling onClick from connectedCallback');
         this.handleOnClick();
     }
 
@@ -68,15 +68,15 @@ export default class Depends extends LightningElement {
     }
 
     handleOnClick() {
-        console.log('Calling findCompDependency from handleOnClick');
+        window.console.log('Calling findCompDependency from handleOnClick');
         this.findCompDependency({ compType: this.mdSearchType, fieldNameToFind: this.searchFieldName, fieldNameToAdd: this.fieldNameToAdd })
     }
 
-    async handleSubscribe(event) {
+    async handleSubscribe() {
         const comp = this;
         // Callback invoked whenever a new event message is received
         const messageCallback = function(response) {
-            console.log('Calling findCompDependency from messageCallback in handleSubscribe');
+            window.console.log('Calling findCompDependency from messageCallback in handleSubscribe\nResonse: ' + response);
             comp.findCompDependency({ compType: comp.mdSearchType, fieldNameToFind: comp.searchFieldName, fieldNameToAdd: comp.fieldNameToAdd });
 
             comp.handleUnsubscribe();
@@ -86,14 +86,14 @@ export default class Depends extends LightningElement {
         // Invoke subscribe method of empApi. Pass reference to messageCallback
         subscribe(this.channelName, -1, messageCallback).then(response => {
             // Response contains the subscription information on successful subscribe call
-            console.log('Successfully subscribed to : ', JSON.stringify(response.channel));
+            window.console.log('Successfully subscribed to : ', JSON.stringify(response.channel));
             this.subscription = response;            
         });
     }
 
     handleUnsubscribe() {
         unsubscribe(this.subscription, response => {
-            console.log('unsubscribe() response: ', JSON.stringify(response));
+            window.console.log('unsubscribe() response: ', JSON.stringify(response));
             this.toggle();
             // Response is true for successful unsubscribe
         });
