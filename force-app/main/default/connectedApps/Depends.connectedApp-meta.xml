@@ -3,8 +3,6 @@
     <contactEmail>dcarroll@salesforce.com</contactEmail>
     <label>Depends</label>
     <oauthConfig>
-        <callbackUrl>https://agility-site-7569-dev-ed.cs41.my.salesforce.com/services/authcallback/Depends</callbackUrl>
-        <consumerKey>3MVG98EE59.VIHmxMm56jctuy77wNmMMTDXkNwERLqfb2G_AoW6nv7ESAwLupSfr2scFkhQd.n4.usUV7.3Gs</consumerKey>
         <isAdminApproved>false</isAdminApproved>
         <scopes>Full</scopes>
         <scopes>RefreshToken</scopes>
